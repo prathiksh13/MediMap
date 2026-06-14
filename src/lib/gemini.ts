@@ -1,7 +1,9 @@
-import { GoogleGenerativeAI } from '@google/genai'
+import { GoogleGenAI } from '@google/genai'
 import type { ReportExtractionResult } from '@/types'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY!,
+})
 
 const EXTRACTION_PROMPT = `You are a medical report parser. Extract ALL test parameters from this medical report PDF.
 
@@ -34,73 +36,82 @@ Return a JSON object with this exact structure:
 }
 
 Rules:
-- Extract EVERY parameter visible in the report, don't skip any
-- Determine status by comparing value to reference range
-- "Watch" = within range but close to boundary (within 10%)
-- "Critical High/Low" = significantly outside range (>50% beyond boundary)
-- If a value is missing a reference range, mark status as "Normal" and leave ref_range fields null
-- Return ONLY the JSON object, no markdown, no explanation`
+- Extract EVERY parameter visible in the report.
+- Do not skip any values.
+- Determine status by comparing value to reference range.
+- "Watch" = within range but close to boundary (within 10%).
+- "Critical High/Low" = significantly outside range (>50% beyond boundary).
+- If a value is missing a reference range, mark status as "Normal" and leave ref_range fields null.
+- Return ONLY the JSON object, no markdown, no explanation.`
 
 export async function extractReportWithGemini(
   fileBuffer: ArrayBuffer,
   mimeType: 'application/pdf' | 'image/jpeg' | 'image/png'
 ): Promise<ReportExtractionResult> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-
   const base64Data = Buffer.from(fileBuffer).toString('base64')
 
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        data: base64Data,
-        mimeType,
+  const response = await genAI.models.generateContent({
+    model: 'gemini-2.0-flash',
+    contents: [
+      {
+        inlineData: {
+          data: base64Data,
+          mimeType,
+        },
       },
-    },
-    EXTRACTION_PROMPT,
-  ])
+      {
+        text: EXTRACTION_PROMPT,
+      },
+    ],
+  })
 
-  const response = result.response
-  const text = response.text()
+  const text = response.text ?? ''
 
-  // Strip markdown fences and bare "json\n" prefix Gemini sometimes emits
   const cleaned = text
-    .replace(/```json\n?/g, '')
-    .replace(/```\n?/g, '')
-    .replace(/^json\n/i, '')
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .replace(/^json\s*/i, '')
     .trim()
 
-  let originalError: Error
   try {
     return JSON.parse(cleaned) as ReportExtractionResult
-  } catch (e) {
-    originalError = e as Error
-  }
+  } catch {
+    const first = cleaned.indexOf('{')
+    const last = cleaned.lastIndexOf('}')
 
-  // Fallback: extract the outermost {...} substring and retry
-  const first = cleaned.indexOf('{')
-  const last = cleaned.lastIndexOf('}')
-  if (first !== -1 && last > first) {
-    try {
-      return JSON.parse(cleaned.slice(first, last + 1)) as ReportExtractionResult
-    } catch {
-      // fall through to throw original error
+    if (first !== -1 && last > first) {
+      return JSON.parse(
+        cleaned.slice(first, last + 1)
+      ) as ReportExtractionResult
     }
-  }
 
-  throw new Error(`Gemini returned invalid JSON: ${text.substring(0, 200)}`)
+    throw new Error(
+      `Gemini returned invalid JSON: ${text.substring(0, 500)}`
+    )
+  }
 }
 
-// Generate recommended tests based on user conditions
 export async function generateRecommendedTests(
   conditions: string[],
-  existingTests: { parameter_name: string; test_date: string }[]
-): Promise<{ test_name: string; reason: string; frequency_days: number }[]> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
+  existingTests: {
+    parameter_name: string
+    test_date: string
+  }[]
+): Promise<
+  {
+    test_name: string
+    reason: string
+    frequency_days: number
+  }[]
+> {
   const prompt = `A patient has the following conditions: ${conditions.join(', ')}.
-Their recent tests include: ${existingTests.map(t => t.parameter_name).join(', ')}.
 
-Return a JSON array of recommended tests they should be doing. Max 8 tests.
+Their recent tests include: ${existingTests
+    .map((t) => t.parameter_name)
+    .join(', ')}.
+
+Return a JSON array of recommended tests they should be doing.
+
 Format:
 [
   {
@@ -110,31 +121,55 @@ Format:
   }
 ]
 
+Maximum 8 tests.
+
 Only return the JSON array, no other text.`
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text()
-  const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+  const response = await genAI.models.generateContent({
+    model: 'gemini-2.0-flash',
+    contents: prompt,
+  })
+
+  const text = (response.text ?? '')
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim()
 
   try {
-    return JSON.parse(cleaned)
+    return JSON.parse(text)
   } catch {
     return []
   }
 }
 
-// Generate health analysis summary across all reports
 export async function generateHealthOverview(
   conditions: string[],
-  recentValues: { parameter_name: string; value: number; unit: string; status: string; test_date: string }[]
+  recentValues: {
+    parameter_name: string
+    value: number
+    unit: string
+    status: string
+    test_date: string
+  }[]
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
   const prompt = `Patient conditions: ${conditions.join(', ')}
-Recent test values: ${JSON.stringify(recentValues.slice(0, 20))}
 
-Write a 3-4 sentence health overview in plain language. Mention specific trends, what's improving, and what needs attention. Do not use medical jargon. Do not give specific medical advice.`
+Recent test values:
+${JSON.stringify(recentValues.slice(0, 20))}
 
-  const result = await model.generateContent(prompt)
-  return result.response.text()
+Write a 3-4 sentence health overview in plain language.
+
+Requirements:
+- Mention specific trends.
+- Explain abnormalities simply.
+- Avoid medical jargon.
+- Do not provide diagnosis.
+- Do not provide treatment advice.`
+
+  const response = await genAI.models.generateContent({
+    model: 'gemini-2.0-flash',
+    contents: prompt,
+  })
+
+  return (response.text ?? '').trim()
 }
