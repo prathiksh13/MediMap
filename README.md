@@ -1,6 +1,6 @@
-# MediMap — Personal Health Intelligence Platform
+# MediMap â€” Personal Health Intelligence Platform
 
-> Transform raw medical reports into longitudinal, actionable health insight — built for patients, not doctors.
+> Transform raw medical reports into longitudinal, actionable health insight â€” built for patients, not doctors.
 
 ---
 
@@ -8,7 +8,7 @@
 
 For the average patient, a medical report is a page of numbers with no context. They don't know what their WBC count means, whether their hemoglobin trend is improving or worsening, or what test they should be doing next. Most people either ignore their reports entirely or misinterpret them without guidance.
 
-Beyond comprehension, there's a storage problem. Reports get lost — buried in WhatsApp chats, scattered across clinic visits, forgotten in folders. When a doctor asks "what were your values six months ago?" the patient has no answer.
+Beyond comprehension, there's a storage problem. Reports get lost â€” buried in WhatsApp chats, scattered across clinic visits, forgotten in folders. When a doctor asks "what were your values six months ago?" the patient has no answer.
 
 The result: patients are passive participants in their own healthcare. They react to crises instead of tracking patterns. They miss follow-up tests. They don't know their risks until it's too late.
 
@@ -20,13 +20,13 @@ India has 77 million diabetics and 220 million hypertension patients, and the av
 
 MediMap is a personal health intelligence platform that transforms raw medical reports into actionable, longitudinal health insight.
 
-A patient registers once — entering age, height, weight, and existing conditions (diabetes, hypertension, cardiac issues). From that point, every report they upload becomes part of a living health record.
+A patient registers once â€” entering age, height, weight, and existing conditions (diabetes, hypertension, cardiac issues). From that point, every report they upload becomes part of a living health record.
 
 The platform:
 
 - Extracts values from uploaded PDFs and scanned images using Gemini Vision (no Tesseract needed)
 - Structures them into a clean parameter table with reference ranges and red/yellow/green risk indicators
-- Generates a plain-language AI verdict — what's abnormal, what the risk is, and what to do next
+- Generates a plain-language AI verdict â€” what's abnormal, what the risk is, and what to do next
 - Tracks every parameter (hemoglobin, WBC, RBC, blood glucose, TSH) across time with line graphs
 - Flags missing tests based on the patient's condition profile and tells them when each test is due
 - Surfaces relevant specialist doctors in Hyderabad and matches insurance plans to health risk
@@ -72,44 +72,44 @@ MediMap doesn't replace doctors. It makes patients informed enough to work with 
 ```text
 medimap/
 +-- src/
-¦   +-- app/
-¦   ¦   +-- page.tsx                    ? Landing page
-¦   ¦   +-- login/page.tsx              ? Sign in
-¦   ¦   +-- register/page.tsx           ? Sign up
-¦   ¦   +-- onboarding/page.tsx         ? 3-step health profile setup
-¦   ¦   +-- dashboard/page.tsx          ? Post-login home
-¦   ¦   +-- upload/page.tsx             ? Report upload + AI extraction
-¦   ¦   +-- reports/
-¦   ¦   ¦   +-- page.tsx                ? Reports vault
-¦   ¦   ¦   +-- [id]/page.tsx           ? Per-report analysis view
-¦   ¦   +-- health-overview/
-¦   ¦   ¦   +-- page.tsx                ? Trends + recommended tests + doctors
-¦   ¦   ¦   +-- HealthCharts.tsx        ? Recharts client component
-¦   ¦   +-- profile/
-¦   ¦   ¦   +-- page.tsx                ? Profile page
-¦   ¦   ¦   +-- ProfileEditForm.tsx     ? Editable form client component
-¦   ¦   +-- family/page.tsx             ? Family group management
-¦   ¦   +-- prescription/page.tsx       ? Prescription scanner
-¦   ¦   +-- api/
-¦   ¦       +-- upload/route.ts         ? PDF upload + OCR + AI analysis
-¦   ¦       +-- reports/route.ts        ? CRUD for reports and values
-¦   ¦       +-- auth/register/route.ts  ? Registration endpoint
-¦   ¦       +-- family/                 ? Family create/join/leave/respond
-¦   ¦       +-- prescription/           ? Prescription scan + medicine lookup
-¦   +-- components/
-¦   ¦   +-- layout/Sidebar.tsx          ? Shared sidebar navigation
-¦   ¦   +-- reports/                    ? Report-related components
-¦   ¦   +-- ui/                         ? Shared UI primitives
-¦   +-- lib/
-¦   ¦   +-- gemini.ts                   ? Gemini API utilities
-¦   ¦   +-- llamaService.ts             ? Groq/Llama AI utilities
-¦   ¦   +-- healthRecommendations.ts    ? Test gap + insurance logic
-¦   ¦   +-- prescriptionParser.ts       ? Medicine extraction helpers
-¦   ¦   +-- mockExtraction.ts           ? Dev mode mock OCR output
-¦   ¦   +-- supabase/
-¦   ¦       +-- client.ts               ? Browser Supabase client
-¦   ¦       +-- server.ts               ? Server Supabase client
-¦   +-- types/index.ts                  ? Shared TypeScript types
+Â¦   +-- app/
+Â¦   Â¦   +-- page.tsx                    ? Landing page
+Â¦   Â¦   +-- login/page.tsx              ? Sign in
+Â¦   Â¦   +-- register/page.tsx           ? Sign up
+Â¦   Â¦   +-- onboarding/page.tsx         ? 3-step health profile setup
+Â¦   Â¦   +-- dashboard/page.tsx          ? Post-login home
+Â¦   Â¦   +-- upload/page.tsx             ? Report upload + AI extraction
+Â¦   Â¦   +-- reports/
+Â¦   Â¦   Â¦   +-- page.tsx                ? Reports vault
+Â¦   Â¦   Â¦   +-- [id]/page.tsx           ? Per-report analysis view
+Â¦   Â¦   +-- health-overview/
+Â¦   Â¦   Â¦   +-- page.tsx                ? Trends + recommended tests + doctors
+Â¦   Â¦   Â¦   +-- HealthCharts.tsx        ? Recharts client component
+Â¦   Â¦   +-- profile/
+Â¦   Â¦   Â¦   +-- page.tsx                ? Profile page
+Â¦   Â¦   Â¦   +-- ProfileEditForm.tsx     ? Editable form client component
+Â¦   Â¦   +-- family/page.tsx             ? Family group management
+Â¦   Â¦   +-- prescription/page.tsx       ? Prescription scanner
+Â¦   Â¦   +-- api/
+Â¦   Â¦       +-- upload/route.ts         ? PDF upload + OCR + AI analysis
+Â¦   Â¦       +-- reports/route.ts        ? CRUD for reports and values
+Â¦   Â¦       +-- auth/register/route.ts  ? Registration endpoint
+Â¦   Â¦       +-- family/                 ? Family create/join/leave/respond
+Â¦   Â¦       +-- prescription/           ? Prescription scan + medicine lookup
+Â¦   +-- components/
+Â¦   Â¦   +-- layout/Sidebar.tsx          ? Shared sidebar navigation
+Â¦   Â¦   +-- reports/                    ? Report-related components
+Â¦   Â¦   +-- ui/                         ? Shared UI primitives
+Â¦   +-- lib/
+Â¦   Â¦   +-- gemini.ts                   ? Gemini API utilities
+Â¦   Â¦   +-- llamaService.ts             ? Groq/Llama AI utilities
+Â¦   Â¦   +-- healthRecommendations.ts    ? Test gap + insurance logic
+Â¦   Â¦   +-- prescriptionParser.ts       ? Medicine extraction helpers
+Â¦   Â¦   +-- mockExtraction.ts           ? Dev mode mock OCR output
+Â¦   Â¦   +-- supabase/
+Â¦   Â¦       +-- client.ts               ? Browser Supabase client
+Â¦   Â¦       +-- server.ts               ? Server Supabase client
+Â¦   +-- types/index.ts                  ? Shared TypeScript types
 +-- supabase-schema.sql                 ? Core schema (run first)
 +-- family-schema.sql                   ? Family tables (run after core schema)
 +-- next.config.js
@@ -213,7 +213,3 @@ npm run start
 - **Supabase RLS:** Use the service role key in server-side API routes that need to bypass RLS.
 
 ---
-
-## License
-
-MIT
